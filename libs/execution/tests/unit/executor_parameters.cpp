@@ -10,7 +10,7 @@
 #include <hpx/include/parallel_executors.hpp>
 #include <hpx/iterator_support/iterator_range.hpp>
 #include <hpx/modules/testing.hpp>
-
+#include <hpx/include/parallel_for_loop.hpp>
 #include <algorithm>
 #include <chrono>
 #include <functional>
@@ -130,6 +130,24 @@ void test_persistent_auto_chunk_size()
     }
 }
 
+void body()
+{
+    // ....
+//    std::cout<<"body"<<std::endl;
+}
+
+void test_splittable_executor()
+{
+
+
+        using hpx::parallel::execution::par;
+        hpx::parallel::execution::splittable_executor spt;
+
+
+        hpx::parallel::for_loop(par.on(spt), std::size_t(0),std::size_t(15), [&](int i){std::cout<<"body"<<std::endl;});
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 struct timer_hooks_parameters
 {
@@ -182,13 +200,14 @@ int hpx_main(hpx::program_options::variables_map& vm)
     std::cout << "using seed: " << seed << std::endl;
     std::srand(seed);
 
-    test_dynamic_chunk_size();
-    test_static_chunk_size();
-    test_guided_chunk_size();
-    test_auto_chunk_size();
-    test_persistent_auto_chunk_size();
+//    test_dynamic_chunk_size();
+//    test_static_chunk_size();
+//    test_guided_chunk_size();
+//    test_auto_chunk_size();
+    test_splittable_executor();
+//    test_persistent_auto_chunk_size();
 
-    test_combined_hooks();
+//    test_combined_hooks();
 
     return hpx::finalize();
 }
