@@ -23,6 +23,9 @@
 
 #include "foreach_tests.hpp"
 
+#include <hpx/execution/executors/splittable_executor.hpp>
+#include <hpx/execution/executors/splittable_task.hpp>
+
 ///////////////////////////////////////////////////////////////////////////////
 template <typename... Parameters>
 void parameters_test_impl(Parameters&&... params)

@@ -36,7 +36,7 @@ namespace hpx { namespace parallel { namespace execution {
                 ///       types will use 80 microseconds as the minimal time for which
                 ///       any of the scheduled chunks should run.
                 ///
-                constexpr splittable_executor()
+                splittable_executor()
                 {
                     std::cout<<"splittable"<<std::endl;
                 }
@@ -69,7 +69,7 @@ namespace hpx { namespace parallel { namespace execution {
                     for (auto const& elem : shape)
                     {
                         results.push_back(
-                            hpx::async(make_splittable_task(std::forward<F>(f), hpx::util::get<0>(elem), hpx::util::get<1>(elem))));
+                            hpx::async(make_splittable_task(std::forward<F>(f), elem)));
                     }
 
                     return results;
