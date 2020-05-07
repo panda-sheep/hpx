@@ -146,9 +146,8 @@ void test_splittable_executor()
         using hpx::parallel::execution::par;
         hpx::parallel::execution::splittable_executor spt;
 
-
-        hpx::parallel::for_loop(par.on(spt), std::size_t(0),std::size_t(15), [&](int i){std::cout<<"body"<<std::endl;});
-
+        hpx::parallel::for_loop(par.on(spt), std::size_t(0), std::size_t(4),
+            [&](int i) { std::cout << "body" << std::endl; });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
