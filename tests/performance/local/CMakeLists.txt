@@ -107,6 +107,7 @@ if(HPX_WITH_DISTRIBUTED_RUNTIME)
       agas_cache_timings
       foreach_scaling
       future_overhead
+      grain_size
       hpx_homogeneous_timed_task_spawn_executors
       hpx_heterogeneous_timed_task_spawn
       parent_vs_child_stealing
@@ -146,6 +147,7 @@ set(skynet_FLAGS DEPENDENCIES iostreams_component)
 set(wait_all_timings_FLAGS DEPENDENCIES iostreams_component hpx_timing)
 set(future_overhead_FLAGS DEPENDENCIES iostreams_component hpx_timing)
 set(sizeof_FLAGS DEPENDENCIES iostreams_component)
+set(grain_size_FLAGS DEPENDENCIES iostreams_component hpx_timing)
 set(foreach_scaling_FLAGS DEPENDENCIES iostreams_component hpx_timing)
 set(spinlock_overhead1_FLAGS DEPENDENCIES iostreams_component hpx_timing)
 set(spinlock_overhead2_FLAGS DEPENDENCIES iostreams_component hpx_timing)

@@ -20,11 +20,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include <hpx/timing.hpp>
 #include "foreach_tests.hpp"
-
 #include <hpx/execution/executors/splittable_executor.hpp>
-#include <hpx/execution/executors/splittable_task.hpp>
+//#include <hpx/parallel/util/detail/splittable_task.hpp>
+#include <hpx/timing/high_resolution_clock.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename... Parameters>
@@ -139,15 +139,44 @@ void body()
 //    std::cout<<"body"<<std::endl;
 }
 
+inline void worker_timed(std::uint64_t delay_ns)
+{
+    if (delay_ns == 0)
+        return;
+
+    std::uint64_t start = hpx::util::high_resolution_clock::now();
+
+    while (true)
+    {
+        // Check if we've reached the specified delay.
+        if ((hpx::util::high_resolution_clock::now() - start) >= delay_ns)
+            break;
+    }
+}
+
 void test_splittable_executor()
 {
+    using hpx::parallel::execution::par;
+    std::size_t count = 10;
+    std::size_t iter_length = 1000;
+    // start the clock
+    hpx::util::high_resolution_timer walltime;
+    hpx::evaluate_active_counters(true, "Initialization");
 
+    hpx::parallel::for_loop(
+        hpx::parallel::execution::par.on(
+            hpx::parallel::execution::splittable_executor()),
+        0, count, [&](std::uint64_t) { worker_timed(iter_length * 1000); });
+    hpx::evaluate_active_counters(false, "Done");
 
-        using hpx::parallel::execution::par;
-        hpx::parallel::execution::splittable_executor spt;
+    // stop the clock
+    const double duration = walltime.elapsed();
 
-        hpx::parallel::for_loop(par.on(spt), std::size_t(0), std::size_t(4),
-            [&](int i) { std::cout << "body" << std::endl; });
+    //    using hpx::parallel::execution::par;
+//    hpx::parallel::execution::splittable_executor spt;
+//
+//    hpx::parallel::for_loop(par.on(spt), std::size_t(0), std::size_t(4000),
+//        [&](int i) { std::cout << "body" << std::endl; });
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -60,6 +60,7 @@ struct splittable_task
     }
 };
 
+
 template <typename F, typename Shape>
 splittable_task<typename std::decay<F>::type> make_splittable_task(
     F&& f, Shape const& s, std::size_t cores)

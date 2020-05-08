@@ -12,6 +12,7 @@
 #include <hpx/execution/executors.hpp>
 #include <hpx/execution/traits/is_executor.hpp>
 #include <hpx/iterator_support/iterator_range.hpp>
+#include <hpx/parallel/util/detail/splittable_task.hpp>
 #include <hpx/serialization/serialize.hpp>
 #include <hpx/timing.hpp>
 
@@ -47,13 +48,6 @@ namespace hpx { namespace parallel { namespace execution {
         ///                     combined.
 
         /// \cond NOINTERNAL
-        // Estimate a chunk size based on number of cores used.
-        template <typename Executor, typename F>
-        std::size_t get_chunk_size(
-            Executor&& exec, F&& f, std::size_t cores, std::size_t count)
-        {
-            return count;
-        }
         /// \endcond
 
         template <typename F, typename S, typename... Ts>
