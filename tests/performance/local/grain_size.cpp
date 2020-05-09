@@ -6,8 +6,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#include <hpx/hpx_init.hpp>
 #include <hpx/hpx.hpp>
+#include <hpx/hpx_init.hpp>
 #include <hpx/include/iostreams.hpp>
 #include <hpx/include/parallel_algorithm.hpp>
 #include <hpx/include/parallel_execution.hpp>
@@ -156,19 +156,6 @@ void measure_function_futures_for_loop_sptctr(
     print_stats("for_loop", "par", "splittable_executor", count, duration, csv);
 }
 
-void measure_function_futures_for_loop_seq(
-    std::uint64_t count, bool csv, std::uint64_t iter_length)
-{
-    // start the clock
-    high_resolution_timer walltime;
-    hpx::parallel::for_loop(hpx::parallel::execution::seq, 0, count,
-        [&](std::uint64_t) { worker_timed(iter_length * 1000); });
-
-    // stop the clock
-    const double duration = walltime.elapsed();
-    print_stats("for_loop", "par", "parallel_executor", count, duration, csv);
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 int hpx_main(variables_map& vm)
 {
@@ -190,41 +177,34 @@ int hpx_main(variables_map& vm)
 
         const std::uint64_t count = vm["num_iterations"].as<std::uint64_t>();
         bool csv = vm.count("csv") != 0;
-        bool seq = vm.count("seq") != 0;
         bool spt = vm.count("spt") != 0;
         bool ctr = vm.count("counter") != 0;
 
         if (HPX_UNLIKELY(0 == count))
             throw std::logic_error("error: count of 0 futures specified\n");
 
-        if (seq)
+        if (spt)
         {
-            for (int i = 0; i < repetitions; i++)
+            if (ctr)
             {
-                measure_function_futures_for_loop_seq(count, csv, iter_length);
+                for (int i = 0; i < repetitions; i++)
+                {
+                    measure_function_futures_for_loop_sptctr(
+                        count, csv, iter_length);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < repetitions; i++)
+                {
+                    measure_function_futures_for_loop_spt(
+                        count, csv, iter_length);
+                }
             }
         }
+
         else
         {
-            if (spt)
-            {
-                if (ctr)
-                {
-                    for (int i = 0; i < repetitions; i++)
-                    {
-                        measure_function_futures_for_loop_sptctr(
-                            count, csv, iter_length);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < repetitions; i++)
-                    {
-                        measure_function_futures_for_loop_spt(
-                            count, csv, iter_length);
-                    }
-                }
-            }
             if (ctr)
             {
                 for (int i = 0; i < repetitions; i++)
@@ -261,7 +241,6 @@ int main(int argc, char* argv[])
         ("csv", "output results as csv (format: count,duration)")
         ("repetitions", value<int>()->default_value(1),
          "number of repetitions of the full benchmark")
-        ("seq","run sequqntially or in parallel")
         ("spt","run using splittable executor")
         ("iter_length",value<std::uint64_t>()->default_value(1), "length of each iteration")
         ("chunk_size",value<std::uint64_t>()->default_value(1), "chunk size")
