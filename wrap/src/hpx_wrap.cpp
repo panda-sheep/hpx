@@ -25,8 +25,8 @@ namespace hpx_start
     // by this code.
     HPX_SYMBOL_EXPORT extern bool include_libhpx_wrap;
     HPX_SYMBOL_EXPORT bool include_libhpx_wrap __attribute__((weak)) = false;
-    HPX_SYMBOL_EXPORT extern std::string app_name_libhpx_wrap;
-    HPX_SYMBOL_EXPORT std::string app_name_libhpx_wrap __attribute__((weak));
+    HPX_SYMBOL_EXPORT extern const char* app_name_libhpx_wrap;
+    HPX_SYMBOL_EXPORT const char* app_name_libhpx_wrap __attribute__((weak));
 }
 
 #include <hpx/hpx_finalize.hpp>
@@ -102,7 +102,7 @@ extern "C" int initialize_main(int argc, char** argv)
             &hpx_start::hpx_entry;
         using hpx::program_options::options_description;
         options_description desc = options_description(
-                "Usage: " + ::hpx_start::app_name_libhpx_wrap + " [options]");
+            std::string("Usage: ") + ::hpx_start::app_name_libhpx_wrap + " [options]");
         // Create the init_params struct
         hpx::init_params iparams;
         iparams.desc_cmdline = desc;
