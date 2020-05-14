@@ -123,7 +123,7 @@ void measure_function_futures_for_loopctr(std::uint64_t count, bool csv,
     print_stats("for_loop", "par", "parallel_executor", count, duration, csv);
 }
 
-void measure_function_futures_for_loop_spt(
+void measure_function_futures_for_loop_sptctr(
     std::uint64_t count, bool csv, std::uint64_t iter_length)
 {
     // start the clock
@@ -141,7 +141,7 @@ void measure_function_futures_for_loop_spt(
     print_stats("for_loop", "par", "splittable_executor", count, duration, csv);
 }
 
-void measure_function_futures_for_loop_sptctr(
+void measure_function_futures_for_loop_spt(
     std::uint64_t count, bool csv, std::uint64_t iter_length)
 {
     // start the clock
