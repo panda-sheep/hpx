@@ -6,6 +6,7 @@
 
 #include <hpx/hpx.hpp>
 #include <hpx/hpx_init.hpp>
+#include <hpx/allocator_support/internal_allocator.hpp>
 #include <hpx/include/iostreams.hpp>
 #include <hpx/synchronization/barrier.hpp>
 #include <hpx/functional/bind.hpp>
@@ -17,7 +18,8 @@
 #include <functional>
 #include <map>
 
-using boost::lockfree::queue;
+template <typename T>
+using queue = boost::lockfree::queue<T, hpx::util::internal_allocator<std::size_t>>;
 
 using hpx::program_options::variables_map;
 using hpx::program_options::options_description;
