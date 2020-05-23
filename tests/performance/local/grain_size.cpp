@@ -12,9 +12,9 @@
 #include <hpx/include/parallel_algorithm.hpp>
 #include <hpx/include/parallel_execution.hpp>
 #include <hpx/include/parallel_executor_parameters.hpp>
-#include <hpx/timing.hpp>
+//#include <hpx/timing.hpp>
 
-#include <hpx/execution/executors/parallel_executor_aggregated.hpp>
+//#include <hpx/execution/executors/parallel_executor_aggregated.hpp>
 
 #include "worker_timed.hpp"
 
@@ -123,8 +123,8 @@ void measure_function_futures_for_loopctr(std::uint64_t count, bool csv,
     print_stats("for_loop", "par", "parallel_executor", count, duration, csv);
 }
 
-void measure_function_futures_for_loop_sptctr(
-    std::uint64_t count, bool csv, std::uint64_t iter_length)
+void measure_function_futures_for_loop_sptctr(std::uint64_t count, bool csv,
+    std::uint64_t iter_length, std::string split_type)
 {
     // start the clock
     high_resolution_timer walltime;
@@ -132,27 +132,30 @@ void measure_function_futures_for_loop_sptctr(
 
     hpx::parallel::for_loop(
         hpx::parallel::execution::par.on(
-            hpx::parallel::execution::splittable_executor()),
+            hpx::parallel::execution::splittable_executor(split_type)),
         0, count, [&](std::uint64_t) { worker_timed(iter_length * 1000); });
 
     hpx::evaluate_active_counters(false, "Done");
     // stop the clock
     const double duration = walltime.elapsed();
+    std::cout << "split type:" << split_type << std::endl;
     print_stats("for_loop", "par", "splittable_executor", count, duration, csv);
 }
 
-void measure_function_futures_for_loop_spt(
-    std::uint64_t count, bool csv, std::uint64_t iter_length)
+void measure_function_futures_for_loop_spt(std::uint64_t count, bool csv,
+    std::uint64_t iter_length, std::string split_type)
 {
     // start the clock
     high_resolution_timer walltime;
     hpx::parallel::for_loop(
         hpx::parallel::execution::par.on(
-            hpx::parallel::execution::splittable_executor()),
+            hpx::parallel::execution::splittable_executor(split_type)),
         0, count, [&](std::uint64_t) { worker_timed(iter_length * 1000); });
 
     // stop the clock
     const double duration = walltime.elapsed();
+    std::cout << "split type:" << split_type << std::endl;
+
     print_stats("for_loop", "par", "splittable_executor", count, duration, csv);
 }
 
@@ -179,7 +182,7 @@ int hpx_main(variables_map& vm)
         bool csv = vm.count("csv") != 0;
         bool spt = vm.count("spt") != 0;
         bool ctr = vm.count("counter") != 0;
-
+        const std::string split_type = vm["split_type"].as<std::string>();
         if (HPX_UNLIKELY(0 == count))
             throw std::logic_error("error: count of 0 futures specified\n");
 
@@ -190,7 +193,7 @@ int hpx_main(variables_map& vm)
                 for (int i = 0; i < repetitions; i++)
                 {
                     measure_function_futures_for_loop_sptctr(
-                        count, csv, iter_length);
+                        count, csv, iter_length, split_type);
                 }
             }
             else
@@ -198,7 +201,7 @@ int hpx_main(variables_map& vm)
                 for (int i = 0; i < repetitions; i++)
                 {
                     measure_function_futures_for_loop_spt(
-                        count, csv, iter_length);
+                        count, csv, iter_length, split_type);
                 }
             }
         }
@@ -242,6 +245,7 @@ int main(int argc, char* argv[])
         ("repetitions", value<int>()->default_value(1),
          "number of repetitions of the full benchmark")
         ("spt","run using splittable executor")
+        ("split_type",value<std::string>()->default_value("all"), "split tasks based on idle cores  or all cores")
         ("iter_length",value<std::uint64_t>()->default_value(1), "length of each iteration")
         ("chunk_size",value<std::uint64_t>()->default_value(1), "chunk size")
         ("counter","print data collected from performance counters");

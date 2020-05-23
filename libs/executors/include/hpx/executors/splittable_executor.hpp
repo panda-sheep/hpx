@@ -39,7 +39,7 @@ namespace hpx { namespace parallel { namespace execution {
         ///       types will use 80 microseconds as the minimal time for which
         ///       any of the scheduled chunks should run.
         ///
-        splittable_executor() {}
+        splittable_executor():split_type_("all") {}
 
         /// Construct an \a splittable_executor executor parameters object
         ///
@@ -47,11 +47,27 @@ namespace hpx { namespace parallel { namespace execution {
         ///                     to decide how many loop iterations should be
         ///                     combined.
 
+        splittable_executor(std::string split_type)
+        {
+            if (split_type != "all" && split_type != "idle")
+            {
+                HPX_THROW_EXCEPTION(hpx::bad_parameter, "throw_hpx_exception",
+                                    "unknwn type, type should be either all or idle");
+            }
+            split_type_ = split_type;
+        }
         /// \cond NOINTERNAL
+        // Estimate a chunk size based on number of cores used.
+        template <typename Executor, typename F>
+        std::size_t get_chunk_size(
+            Executor&& exec, F&& f, std::size_t cores, std::size_t count)
+        {
+            return count;
+        }
         /// \endcond
 
         template <typename F, typename S, typename... Ts>
-        static std::vector<hpx::future<
+        std::vector<hpx::future<
             typename detail::bulk_function_result<F, S, Ts...>::type>>
         bulk_async_execute(F&& f, S const& shape, Ts&&... ts)
         {
@@ -63,7 +79,7 @@ namespace hpx { namespace parallel { namespace execution {
             for (auto const& elem : shape)
             {
                 results.push_back(hpx::async(make_splittable_task(
-                    std::forward<F>(f), elem, hpx::get_os_thread_count())));
+                    std::forward<F>(f), elem, split_type_)));
             }
 
             return results;
@@ -71,7 +87,7 @@ namespace hpx { namespace parallel { namespace execution {
 
     private:
         friend class hpx::serialization::access;
-
+        std::string split_type_;
         /// \cond NOINTERNAL
     };
 
@@ -90,7 +106,7 @@ namespace hpx { namespace parallel { namespace execution {
     /// \endcond
     template <typename AnyParameters, typename Executor>
     HPX_FORCEINLINE static std::size_t processing_units_count(
-        AnyParameters&& params, Executor&& exec)
+        AnyParameters& params, Executor& exec)
     {
         return hpx::get_os_thread_count();
     }

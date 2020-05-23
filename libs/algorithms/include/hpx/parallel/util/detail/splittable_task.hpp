@@ -21,57 +21,60 @@ struct splittable_task
     F f_;
 
     template <typename F_, typename Shape>
-    splittable_task(F_&& f, Shape const& elem, std::size_t cores)
+    splittable_task(
+        F_&& f, Shape const& elem, std::size_t cores, std::string split_type)
       : start_(hpx::util::get<0>(elem))
       , stop_(hpx::util::get<1>(elem))
       , index_(hpx::util::get<2>(elem))
-      , num_free_(cores)
       , f_(std::forward<F_>(f))
+      , split_type_(split_type)
     {
+        if (split_type_ == "all")
+            num_free_ = cores;
+        else
+            num_free_ = hpx::threads::get_idle_core_count() + 1;
     }
 
     void operator()()
     {
-//        using hpx::threads::get_idle_thread_count;
-//        std::size_t num_idle = get_idle_thread_count();
-//        std::cout<<num_idle<<std::endl;
-        hpx::evaluate_active_counters(false, "split");
-
-        hpx::future<void> future;
-        std::size_t remainder = (stop_ - start_) * float(num_free_ - 1) / float(num_free_);
-//        std::cout<<"remainder:"<<remainder<<std::endl;
-        if ((num_free_ > 1) &
+        hpx::future<void> result;
+        std::size_t remainder =
+            (stop_ - start_) * float(num_free_ - 1) / float(num_free_);
+//        std::cout << "number of " << split_type_ << " cores: " << num_free_ - 1
+//                  << " remaining number of iterations:" << remainder
+//                  << std::endl;
+        if ((num_free_ > 1) &&
             (remainder > 1))    //split the current task among the idle cores
         {
             num_free_ -= 1;
-            future = hpx::async(splittable_task(f_,
-                hpx::util::make_tuple(
-                    start_, start_ + remainder, index_ + 1),
-                num_free_));
+            result = hpx::async(splittable_task(f_,
+                hpx::util::make_tuple(start_, start_ + remainder, index_ + 1),
+                num_free_, split_type_));
             start_ = start_ + remainder;
         }
-//
-//        std::cout << "task " << num_free_ << " from: " << start_
+
+//        std::cout << " task index: " << index_ << " from: " << start_
 //                  << " to: " << stop_ << std::endl;
 
         f_(hpx::util::make_tuple(start_, stop_ - start_, index_));
-        //num_free_ -= 1;
 
-        if (future.valid())
+        if (result.valid())
         {
-            future.get();
+            result.get();
         }
-
     }
-};
 
+private:
+    std::string split_type_;
+};
 
 template <typename F, typename Shape>
 splittable_task<typename std::decay<F>::type> make_splittable_task(
-    F&& f, Shape const& s, std::size_t cores)
+    F&& f, Shape const& s, std::string split_type)
 {
+    std::size_t cores = hpx::get_os_thread_count();
     return splittable_task<typename std::decay<F>::type>(
-        std::forward<F>(f), s, cores);
+        std::forward<F>(f), s, cores, split_type);
 }
 
 #endif    //HPX_SPLITTABLE_TASK_HPP
