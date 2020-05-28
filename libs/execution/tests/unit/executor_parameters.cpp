@@ -22,7 +22,7 @@
 #include <vector>
 #include <hpx/timing.hpp>
 #include "foreach_tests.hpp"
-#include <hpx/execution/executors/splittable_executor.hpp>
+#include <hpx/executors.hpp>
 //#include <hpx/parallel/util/detail/splittable_task.hpp>
 #include <hpx/timing/high_resolution_clock.hpp>
 

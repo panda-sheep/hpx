@@ -9,7 +9,7 @@
 #define HPX_SPLITTABLE_EXECUTOR_HPP
 
 #include <hpx/config.hpp>
-#include <hpx/execution/executors.hpp>
+#include <hpx/executors.hpp>
 #include <hpx/execution/traits/is_executor.hpp>
 #include <hpx/iterator_support/iterator_range.hpp>
 #include <hpx/parallel/util/detail/splittable_task.hpp>
