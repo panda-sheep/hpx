@@ -10,6 +10,8 @@
 
 #include <type_traits>
 #include <utility>
+#include <hpx/include/async.hpp>
+#include <hpx/runtime/thread_pool_helpers.hpp>
 
 template <typename F>
 struct splittable_task
