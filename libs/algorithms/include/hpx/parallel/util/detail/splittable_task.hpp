@@ -31,32 +31,31 @@ struct splittable_task
       , f_(std::forward<F_>(f))
       , split_type_(split_type)
     {
-        if (split_type_ == "all")
-            num_free_ = cores;
-        else
-            num_free_ = hpx::threads::get_idle_core_count() + 1;
+         num_free_ = cores;
+
+	//if (split_type_ == "all")
+        //    num_free_ = cores;
+        //else
+        //    num_free_ = hpx::threads::get_idle_core_count() + 1;
     }
 
     void operator()()
     {
         hpx::future<void> result;
-        std::size_t remainder =
-            (stop_ - start_) * float(num_free_ - 1) / float(num_free_);
-//        std::cout << "number of " << split_type_ << " cores: " << num_free_ - 1
-//                  << " remaining number of iterations:" << remainder
-//                  << std::endl;
-        if ((num_free_ > 1) &&
-            (remainder > 1))    //split the current task among the idle cores
+	if (split_type_ == "idle")
+		num_free_ = hpx::threads::get_idle_core_count() + 1;
+
+	std::size_t remainder = static_cast<std::size_t>(std::floor((stop_ - start_) * double(num_free_ - 1) / double(num_free_)));
+
+	if ((num_free_ > 1) &&
+            (remainder > 0))    //split the current task
         {
             num_free_ -= 1;
             result = hpx::async(splittable_task(f_,
-                hpx::util::make_tuple(start_, start_ + remainder, index_ + 1),
+                hpx::util::make_tuple(stop_ - remainder, stop_, index_ + 1),
                 num_free_, split_type_));
-            start_ = start_ + remainder;
+            stop_ = stop_ - remainder;
         }
-
-//        std::cout << " task index: " << index_ << " from: " << start_
-//                  << " to: " << stop_ << std::endl;
 
         f_(hpx::util::make_tuple(start_, stop_ - start_, index_));
 
@@ -80,3 +79,4 @@ splittable_task<typename std::decay<F>::type> make_splittable_task(
 }
 
 #endif    //HPX_SPLITTABLE_TASK_HPP
+
