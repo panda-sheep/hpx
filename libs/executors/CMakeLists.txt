@@ -13,6 +13,7 @@ set(executors_headers
     hpx/executors/current_executor.hpp
     hpx/executors/datapar/execution_policy_fwd.hpp
     hpx/executors/datapar/execution_policy.hpp
+    hpx/executors/detail/splittable_task.hpp
     hpx/executors/guided_pool_executor.hpp
     hpx/modules/executors.hpp
     hpx/executors/apply.hpp
@@ -28,6 +29,7 @@ set(executors_headers
     hpx/executors/restricted_thread_pool_executor.hpp
     hpx/executors/sequenced_executor.hpp
     hpx/executors/service_executors.hpp
+    hpx/executors/splittable_executor.hpp
     hpx/executors/sync.hpp
     hpx/executors/thread_pool_attached_executors.hpp
 )
@@ -78,9 +80,11 @@ add_hpx_module(
     hpx_basic_execution
     hpx_config
     hpx_errors
+    hpx_datastructures
     hpx_execution
     hpx_functional
     hpx_iterator_support
+    hpx_runtime_local
     hpx_serialization
     hpx_synchronization
     hpx_threading_base
