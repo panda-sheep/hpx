@@ -197,9 +197,14 @@ int hpx_main(variables_map& vm)
             std::string const split_type = vm["split_type"].as<std::string>();
             hpx::parallel::execution::splittable_mode split_mode =
                 hpx::parallel::execution::splittable_mode::all;
-            if (split_type != "all")
+            if (split_type == "idle")
             {
                 split_mode = hpx::parallel::execution::splittable_mode::idle;
+            }
+            else if (split_type == "idle_mask")
+            {
+                split_mode =
+                    hpx::parallel::execution::splittable_mode::idle_mask;
             }
 
             if (ctr)

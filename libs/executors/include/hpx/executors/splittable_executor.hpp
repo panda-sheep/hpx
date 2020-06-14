@@ -57,11 +57,13 @@ namespace hpx { namespace parallel { namespace execution {
           : split_type_(split_type)
         {
             if (split_type != splittable_mode::all &&
-                split_type != splittable_mode::idle)
+                split_type != splittable_mode::idle &&
+                split_type != splittable_mode::idle_mask)
             {
                 HPX_THROW_EXCEPTION(hpx::bad_parameter,
                     "splittable_executor::splittable_executor",
-                    "unknown type, type should be either all or idle");
+                    "unknown type, type should be either all, idle, or "
+                    "idle_mask");
             }
         }
 
