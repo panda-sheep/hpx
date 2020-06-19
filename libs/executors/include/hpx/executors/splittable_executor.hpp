@@ -11,6 +11,7 @@
 #include <hpx/config.hpp>
 #include <hpx/execution/traits/is_executor.hpp>
 #include <hpx/executors/detail/splittable_task.hpp>
+#include <hpx/include/async.hpp>
 #include <hpx/modules/executors.hpp>
 #include <hpx/modules/iterator_support.hpp>
 #include <hpx/modules/serialization.hpp>

@@ -12,6 +12,7 @@
 #include <hpx/include/parallel_algorithm.hpp>
 #include <hpx/include/parallel_execution.hpp>
 #include <hpx/include/parallel_executor_parameters.hpp>
+#include <hpx/program_options.hpp>
 //#include <hpx/timing.hpp>
 
 //#include <hpx/execution/executors/parallel_executor_aggregated.hpp>
@@ -27,9 +28,9 @@
 #include <string>
 #include <vector>
 
-using boost::program_options::options_description;
-using boost::program_options::value;
-using boost::program_options::variables_map;
+using hpx::program_options::options_description;
+using hpx::program_options::value;
+using hpx::program_options::variables_map;
 
 using hpx::finalize;
 using hpx::init;

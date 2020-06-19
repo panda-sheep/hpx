@@ -87,7 +87,10 @@ namespace hpx { namespace parallel { namespace execution {
             std::size_t remainder =
                 ((stop_ - start_) * num_free_) / (num_free_ + 1);
 
-            if (num_free_ != 0 && remainder != 0)
+            std::size_t task_size = static_cast<std::size_t>(
+ 	           std::ceil((stop_ - start_) / double(num_free_)));
+
+            if (num_free_ > 0 && task_size > 400)
             {
                 hpx::util::thread_description desc(f_);
 
