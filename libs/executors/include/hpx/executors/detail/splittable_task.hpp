@@ -84,13 +84,10 @@ namespace hpx { namespace parallel { namespace execution {
 
             hpx::latch l(num_free_ + 1);
 
-            std::size_t remainder =
-                ((stop_ - start_) * num_free_) / (num_free_ + 1);
-
             std::size_t task_size = static_cast<std::size_t>(
  	           std::ceil((stop_ - start_) / double(num_free_)));
 
-            if (num_free_ > 0 && task_size > 400)
+            if (num_free_ != 0 && task_size != 0)
             {
                 hpx::util::thread_description desc(f_);
 
@@ -106,11 +103,11 @@ namespace hpx { namespace parallel { namespace execution {
                             hpx::threads::thread_schedule_hint(std::int16_t(j)),
                             splittable_task(exec_, f_,
                                 hpx::util::make_tuple(
-                                    stop_ - remainder, stop_, index_ + i + 1),
+                                    stop_ - task_size, stop_, index_ + i + 1),
                                 num_free_, split_type_),
                             &l);
 
-                        stop_ = stop_ - remainder;
+                        stop_ = stop_ - task_size;
                         ++i;
                     }
                 }
