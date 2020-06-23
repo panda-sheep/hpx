@@ -126,7 +126,7 @@ void measure_function_futures_for_loopctr(std::uint64_t count, bool csv,
 
 void measure_function_futures_for_loop_sptctr(std::uint64_t count, bool csv,
     std::uint64_t iter_length,
-    hpx::parallel::execution::splittable_mode split_type)
+    hpx::parallel::execution::splittable_mode split_type, std::size_t min_task_size)
 {
     // start the clock
     high_resolution_timer walltime;
@@ -134,7 +134,7 @@ void measure_function_futures_for_loop_sptctr(std::uint64_t count, bool csv,
 
     hpx::parallel::for_loop(
         hpx::parallel::execution::par.on(
-            hpx::parallel::execution::splittable_executor(split_type)),
+            hpx::parallel::execution::splittable_executor(split_type, min_task_size)),
         0, count, [&](std::uint64_t) { worker_timed(iter_length * 1000); });
 
     hpx::evaluate_active_counters(false, "Done");
@@ -147,13 +147,13 @@ void measure_function_futures_for_loop_sptctr(std::uint64_t count, bool csv,
 
 void measure_function_futures_for_loop_spt(std::uint64_t count, bool csv,
     std::uint64_t iter_length,
-    hpx::parallel::execution::splittable_mode split_type)
+    hpx::parallel::execution::splittable_mode split_type, std::size_t min_task_size)
 {
     // start the clock
     high_resolution_timer walltime;
     hpx::parallel::for_loop(
         hpx::parallel::execution::par.on(
-            hpx::parallel::execution::splittable_executor(split_type)),
+            hpx::parallel::execution::splittable_executor(split_type, min_task_size)),
         0, count, [&](std::uint64_t) { worker_timed(iter_length * 1000); });
 
     // stop the clock
@@ -182,7 +182,7 @@ int hpx_main(variables_map& vm)
 
         std::uint64_t const chunk_size = vm["chunk_size"].as<std::uint64_t>();
         std::uint64_t const iter_length = vm["iter_length"].as<std::uint64_t>();
-
+        std::uint64_t const min_task_size = vm["min_task_size"].as<std::uint64_t>();
         std::uint64_t const count = vm["num_iterations"].as<std::uint64_t>();
         if (HPX_UNLIKELY(0 == count))
         {
@@ -213,7 +213,7 @@ int hpx_main(variables_map& vm)
                 for (int i = 0; i < repetitions; i++)
                 {
                     measure_function_futures_for_loop_sptctr(
-                        count, csv, iter_length, split_mode);
+                        count, csv, iter_length, split_mode, min_task_size);
                 }
             }
             else
@@ -221,7 +221,7 @@ int hpx_main(variables_map& vm)
                 for (int i = 0; i < repetitions; i++)
                 {
                     measure_function_futures_for_loop_spt(
-                        count, csv, iter_length, split_mode);
+                        count, csv, iter_length, split_mode, min_task_size);
                 }
             }
         }
@@ -266,6 +266,8 @@ int main(int argc, char* argv[])
         ("spt","run using splittable executor")
         ("split_type", value<std::string>()->default_value("all"),
             "split tasks based on idle cores  or all cores")
+        ("min_task_size", value<std::uint64_t>()->default_value(0),
+            "minimum task size for split")
         ("iter_length", value<std::uint64_t>()->default_value(1),
             "length of each iteration")
         ("chunk_size", value<std::uint64_t>()->default_value(1), "chunk size")

@@ -44,7 +44,7 @@ namespace hpx { namespace parallel { namespace execution {
         ///       any of the scheduled chunks should run.
         ///
         splittable_executor()
-          : split_type_(splittable_mode::all)
+          : split_type_(splittable_mode::all), min_task_size_(0)
         {
         }
 
@@ -55,7 +55,21 @@ namespace hpx { namespace parallel { namespace execution {
         ///                     combined.
 
         splittable_executor(splittable_mode split_type)
-          : split_type_(split_type)
+          : split_type_(split_type), min_task_size_(0)
+        {
+            if (split_type != splittable_mode::all &&
+                split_type != splittable_mode::idle &&
+                split_type != splittable_mode::idle_mask)
+            {
+                HPX_THROW_EXCEPTION(hpx::bad_parameter,
+                    "splittable_executor::splittable_executor",
+                    "unknown type, type should be either all, idle, or "
+                    "idle_mask");
+            }
+        }
+
+        splittable_executor(splittable_mode split_type, std::size_t min_task_size)
+          : split_type_(split_type), min_task_size_(min_task_size)
         {
             if (split_type != splittable_mode::all &&
                 split_type != splittable_mode::idle &&
@@ -97,7 +111,7 @@ namespace hpx { namespace parallel { namespace execution {
             {
                 results.push_back(hpx::async(
                     make_splittable_task(static_cast<base_type&>(*this),
-                        std::forward<F>(f), elem, split_type_)));
+                        std::forward<F>(f), elem, split_type_, min_task_size_)));
             }
 
             return results;
@@ -106,6 +120,7 @@ namespace hpx { namespace parallel { namespace execution {
     private:
         friend class hpx::serialization::access;
         splittable_mode split_type_;
+	std::size_t min_task_size_;
     };
 
     /// \cond NOINTERNAL

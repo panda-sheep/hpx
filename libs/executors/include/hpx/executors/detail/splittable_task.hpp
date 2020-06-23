@@ -43,19 +43,16 @@ namespace hpx { namespace parallel { namespace execution {
     {
         template <typename F_, typename Shape>
         splittable_task(Executor& exec, F_&& f, Shape const& elem,
-            std::size_t cores, splittable_mode split_type)
+            std::size_t num_free, splittable_mode split_type, std::size_t min_task_size)
           : start_(hpx::util::get<0>(elem))
           , stop_(hpx::util::get<1>(elem))
           , index_(hpx::util::get<2>(elem))
-          , num_free_(cores)
+          , num_free_(num_free)
           , f_(std::forward<F_>(f))
           , exec_(exec)
           , split_type_(split_type)
+	  , min_task_size_(min_task_size)
         {
-            //if (split_type_ == splittable_mode::all)
-            //    num_free_ = cores;
-            //else
-            //    num_free_ = hpx::threads::get_idle_core_count() + 1;
         }
 
         void operator()(hpx::latch* outer_latch = nullptr)
@@ -84,10 +81,9 @@ namespace hpx { namespace parallel { namespace execution {
 
             hpx::latch l(num_free_ + 1);
 
-            std::size_t task_size = static_cast<std::size_t>(
- 	           std::ceil((stop_ - start_) / double(num_free_)));
+            std::size_t task_size = std::ceil((stop_ - start_) / (num_free_ + 1));
 
-            if (num_free_ != 0 && task_size != 0)
+            if (num_free_ != 0 && task_size > min_task_size_)
             {
                 hpx::util::thread_description desc(f_);
 
@@ -104,7 +100,7 @@ namespace hpx { namespace parallel { namespace execution {
                             splittable_task(exec_, f_,
                                 hpx::util::make_tuple(
                                     stop_ - task_size, stop_, index_ + i + 1),
-                                num_free_, split_type_),
+                                num_free_, split_type_, min_task_size_),
                             &l);
 
                         stop_ = stop_ - task_size;
@@ -127,24 +123,23 @@ namespace hpx { namespace parallel { namespace execution {
         {
             if (split_type_ == splittable_mode::idle)
             {
-                num_free_ = hpx::threads::get_idle_core_count() + 1;
+                num_free_ = hpx::threads::get_idle_core_count();
             }
 
             hpx::latch l(2);
 
-            std::size_t remainder =
-                ((stop_ - start_) * (num_free_ - 1)) / num_free_;
+            std::size_t task_size = std::ceil((stop_ - start_) / (num_free_ + 1));
 
-            if ((num_free_ > 1) && (remainder != 0))
+            if (num_free_ != 0 && task_size > min_task_size_)
             {
                 // split the current task
                 --num_free_;
                 exec_.post(splittable_task(exec_, f_,
                                hpx::util::make_tuple(
-                                   stop_ - remainder, stop_, index_ + 1),
-                               num_free_, split_type_),
+                                   stop_ - num_free_ * task_size, stop_, index_ + 1),
+                               num_free_, split_type_, min_task_size_),
                     &l);
-                stop_ = stop_ - remainder;
+                stop_ = stop_ - num_free_ * task_size;
             }
             else
             {
@@ -165,16 +160,17 @@ namespace hpx { namespace parallel { namespace execution {
         F f_;
         Executor& exec_;
         splittable_mode split_type_;
+	std::size_t min_task_size_;
     };
 
     template <typename Executor, typename F, typename Shape>
     splittable_task<Executor, typename std::decay<F>::type>
     make_splittable_task(
-        Executor& exec, F&& f, Shape const& s, splittable_mode split_type)
+        Executor& exec, F&& f, Shape const& s, splittable_mode split_type, std::size_t min_task_size)
     {
-        std::size_t cores = hpx::get_os_thread_count();
+        std::size_t num_free = hpx::get_os_thread_count() - 1;
         return splittable_task<Executor, typename std::decay<F>::type>(
-            exec, std::forward<F>(f), s, cores, split_type);
+            exec, std::forward<F>(f), s, num_free, split_type, min_task_size);
     }
 
 }}}    // namespace hpx::parallel::execution
