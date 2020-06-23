@@ -207,6 +207,11 @@ int hpx_main(variables_map& vm)
                 split_mode =
                     hpx::parallel::execution::splittable_mode::idle_mask;
             }
+	    else if (split_type == "all_multiple_tasks")
+            {
+                split_mode =
+                    hpx::parallel::execution::splittable_mode::all_multiple_tasks;
+            }
 
             if (ctr)
             {

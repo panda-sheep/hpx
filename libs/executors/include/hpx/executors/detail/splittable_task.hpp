@@ -28,12 +28,13 @@ namespace hpx { namespace parallel { namespace execution {
         all = 0,
         idle = 1,
         idle_mask = 2,
+	all_multiple_tasks = 3
     };
 
     char const* const get_splittable_mode_name(splittable_mode mode)
     {
         static constexpr char const* const splittable_mode_names[] = {
-            "all", "idle", "idle_mask"};
+            "all", "idle", "idle_mask", "all_multiple_tasks"};
         return splittable_mode_names[static_cast<std::size_t>(mode)];
     }
 
@@ -60,6 +61,10 @@ namespace hpx { namespace parallel { namespace execution {
             if (split_type_ == splittable_mode::idle_mask)
             {
                 call_idle_mask();
+            }
+	    else if (split_type_ == splittable_mode::all_multiple_tasks)
+            {
+                call_all_multiple_tasks();
             }
             else
             {
@@ -144,6 +149,43 @@ namespace hpx { namespace parallel { namespace execution {
             else
             {
                 l.count_down(1);
+            }
+
+            f_(hpx::util::make_tuple(start_, stop_ - start_, index_));
+
+            // wait for task scheduled above
+            l.arrive_and_wait(1);
+        }
+
+	void call_all_multiple_tasks()
+        {
+            hpx::latch l(num_free_ + 1);
+
+            std::size_t task_size = std::ceil((stop_ - start_) / (num_free_ + 1));
+
+            if (num_free_ != 0 && task_size > min_task_size_)
+            {
+                hpx::util::thread_description desc(f_);
+
+                // split the current task, create one for each of num_free_ cores
+                for (std::size_t i = 0; i != num_free_; ++i)
+                {
+                    using policy = hpx::launch::async_policy;
+                    detail::post_policy_dispatch<policy>::call(policy{}, desc,
+                        exec_.get_priority(), exec_.get_stacksize(),
+                        hpx::threads::thread_schedule_hint(),
+                        splittable_task(exec_, f_,
+                            hpx::util::make_tuple(
+                                stop_ - task_size, stop_, index_ + i + 1),
+                            num_free_ - 1, split_type_, min_task_size_),
+                        &l);
+
+                    stop_ = stop_ - task_size;
+                }
+            }
+            else
+            {
+                l.count_down(num_free_);
             }
 
             f_(hpx::util::make_tuple(start_, stop_ - start_, index_));

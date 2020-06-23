@@ -59,12 +59,13 @@ namespace hpx { namespace parallel { namespace execution {
         {
             if (split_type != splittable_mode::all &&
                 split_type != splittable_mode::idle &&
-                split_type != splittable_mode::idle_mask)
+                split_type != splittable_mode::idle_mask && 
+		split_type != splittable_mode::all_multiple_tasks)
             {
                 HPX_THROW_EXCEPTION(hpx::bad_parameter,
                     "splittable_executor::splittable_executor",
-                    "unknown type, type should be either all, idle, or "
-                    "idle_mask");
+                    "unknown type, type should be either all, idle, "
+                    "idle_mask, or all_multiple_tasks");
             }
         }
 
@@ -73,12 +74,13 @@ namespace hpx { namespace parallel { namespace execution {
         {
             if (split_type != splittable_mode::all &&
                 split_type != splittable_mode::idle &&
-                split_type != splittable_mode::idle_mask)
+                split_type != splittable_mode::idle_mask &&
+		split_type != splittable_mode::all_multiple_tasks)
             {
                 HPX_THROW_EXCEPTION(hpx::bad_parameter,
                     "splittable_executor::splittable_executor",
-                    "unknown type, type should be either all, idle, or "
-                    "idle_mask");
+                    "unknown type, type should be either all, idle, "
+                    "idle_mask, all_multiple_tasks");
             }
         }
 
