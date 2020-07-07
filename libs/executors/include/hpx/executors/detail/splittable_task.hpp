@@ -138,11 +138,10 @@ namespace hpx { namespace parallel { namespace execution {
             if (num_free_ != 0 && task_size > min_task_size_)
             {
                 // split the current task
-                --num_free_;
                 exec_.post(splittable_task(exec_, f_,
                                hpx::util::make_tuple(
                                    stop_ - num_free_ * task_size, stop_, index_ + 1),
-                               num_free_, split_type_, min_task_size_),
+                               num_free_ - 1, split_type_, min_task_size_),
                     &l);
                 stop_ = stop_ - num_free_ * task_size;
             }
