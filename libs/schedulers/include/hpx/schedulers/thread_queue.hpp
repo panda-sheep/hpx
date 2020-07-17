@@ -854,8 +854,9 @@ namespace hpx { namespace threads { namespace policies {
 
             if (unknown == state)
             {
-                return thread_map_count_ + new_tasks_count_.data_ -
-                    terminated_items_count_;
+		 return work_items_count_.data_ + new_tasks_count_.data_;
+                //return thread_map_count_ + new_tasks_count_.data_ -
+                //    terminated_items_count_;
             }
 
             // acquire lock only if absolutely necessary
