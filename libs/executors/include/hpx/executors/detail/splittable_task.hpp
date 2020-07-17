@@ -66,6 +66,10 @@ namespace hpx { namespace parallel { namespace execution {
             {
                 call_all_multiple_tasks();
             }
+	    else if (split_type_ == splittable_mode::idle)
+	    {
+		call_idle();
+	    }
             else
             {
                 call();
@@ -79,6 +83,52 @@ namespace hpx { namespace parallel { namespace execution {
         }
 
     private:
+	void call_idle()
+        {
+            auto mask = hpx::threads::get_idle_core_mask();
+            num_free_ = hpx::threads::count(mask);
+
+            hpx::latch l(2);
+
+            std::size_t task_size =
+                std::ceil(num_free_ * (stop_ - start_) / (num_free_ + 1));
+
+            if (num_free_ != 0 && task_size > min_task_size_)
+            {
+                // split the current task, create one for each idle core
+                for (std::size_t i = 0, j = 0; i != 1; ++j)
+                {
+                    if (hpx::threads::test(mask, j))
+                    {
+                        hpx::util::thread_description desc(f_);
+
+                        // pass schedule hint to place new task on empty core
+                        using policy = hpx::launch::async_policy;
+                        detail::post_policy_dispatch<policy>::call(policy{},
+                            desc, exec_.get_priority(), exec_.get_stacksize(),
+                            hpx::threads::thread_schedule_hint(std::int16_t(j)),
+                            splittable_task(exec_, f_,
+                                hpx::util::make_tuple(
+                                    stop_ - task_size, stop_, index_ + i + 1),
+                                num_free_, split_type_, min_task_size_),
+                            &l);
+
+                        stop_ = stop_ - task_size;
+                        ++i;
+                    }
+                }
+            }
+            else
+            {
+                l.count_down(1);
+            }
+        
+	    f_(hpx::util::make_tuple(start_, stop_ - start_, index_));
+
+            // wait for task scheduled above
+            l.arrive_and_wait(1);
+        }
+
         void call_idle_mask()
         {
             auto mask = hpx::threads::get_idle_core_mask();
@@ -126,22 +176,19 @@ namespace hpx { namespace parallel { namespace execution {
 
         void call()
         {
-            if (split_type_ == splittable_mode::idle)
-            {
-                num_free_ = hpx::threads::get_idle_core_count();
-            }
-
             hpx::latch l(2);
 
-            std::size_t task_size = std::ceil((stop_ - start_) / (num_free_ + 1));
+            std::size_t task_size = 
+		std::ceil((stop_ - start_) / (num_free_ + 1));
 
             if (num_free_ != 0 && task_size > min_task_size_)
             {
                 // split the current task
-                exec_.post(splittable_task(exec_, f_,
-                               hpx::util::make_tuple(
-                                   stop_ - num_free_ * task_size, stop_, index_ + 1),
-                               num_free_ - 1, split_type_, min_task_size_),
+		exec_.post(
+                    splittable_task(exec_, f_,
+                        hpx::util::make_tuple(
+                            stop_ - num_free_ * task_size, stop_, index_ + 1),
+                        num_free_ - 1, split_type_, min_task_size_),
                     &l);
                 stop_ = stop_ - num_free_ * task_size;
             }
