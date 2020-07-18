@@ -1,4 +1,4 @@
-# Copyright (c) 2019 The STE||AR-Group
+# Copyright (c) 2019-2020 The STE||AR-Group
 #
 # SPDX-License-Identifier: BSL-1.0
 # Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -16,6 +16,7 @@ set(execution_base_headers
     hpx/execution_base/receiver.hpp
     hpx/execution_base/register_locks.hpp
     hpx/execution_base/resource_base.hpp
+    hpx/execution_base/sender.hpp
     hpx/execution_base/this_thread.hpp
 )
 

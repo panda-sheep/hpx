@@ -36,9 +36,7 @@ namespace mylib {
     {
     };
 
-    void tag_invoke(hpx::execution_base::start_t, state_4)
-    {
-    }
+    void tag_invoke(hpx::execution_base::start_t, state_4) {}
 
     struct state_5
     {
